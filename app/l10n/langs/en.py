@@ -97,7 +97,7 @@ S = {
     "as_ton": "Toncoin (TON)",
     "as_copied": "Address copied",
     "as_version": "Version %1$s",
-    "as_about": "AEmulator runs classic Android firmware on modern phones. Free and open source.",,
+    "as_about": "AEmulator runs classic Android firmware on modern phones. Free and open source.",
     "vs_native32": "Hardware 32-bit execution",
     "vs_native32_sub": "Direct execution on CPU (AArch32 EL0) bypassing translators; huge performance boost.",
     "vs_native32_unsupported": "Hardware 32-bit (AArch32 EL0) is not supported by your device CPU; QEMU translation used.",
