@@ -129,7 +129,7 @@ object InitPlan {
     )
 
     /** Строит план загрузки из разобранных rc-файлов; для отсутствующих служб берёт умолчания. */
-    fun plan(rc: Rc, api: Int, root: File): List<GuestService> {
+    fun plan(rc: Rc, api: Int, root: File, enableBootSound: Boolean = false): List<GuestService> {
         val out = ArrayList<GuestService>()
         for (r in ORDER) {
             if (api in 1 until r.minApi) continue
@@ -150,22 +150,44 @@ object InitPlan {
         val extras = rc.services.values.filter { sv ->
             val bin = sv.argv.first()
             val base = bin.substringAfterLast('/')
-            // (a HAL marked oneshot is one its client restarts: the audio service)
-            !sv.disabled && (!sv.oneshot || bin.substringBeforeLast('/').endsWith("/bin/hw")) && sv.name !in known && sv.name !in SKIP && base !in SKIP_BIN &&
-                // префиксом совпадают только явные «xxx_» и длинные имена: иначе «sh» отсекал бы shelld (MIUI) и т.п.
-                // Samsung's sensorhubservice is a binder service system_server waits for without a timeout (S4/S5 TouchWiz), not a sensor daemon
-                (base == "sensorhubservice" || SKIP_BIN.none { base == it || ((it.endsWith("_") || it.length >= 5) && base.startsWith(it)) }) && !base.endsWith(".sh") &&
-                // (10+: the software codec service is a program of its APEX module)
-                (bin.startsWith("/system/bin/") || bin.startsWith("/system/xbin/") || bin.startsWith("/vendor/bin/") || bin.startsWith("/apex/")) &&
+            val bootSound = enableBootSound && isBootSoundService(sv)
+        
+            val startEligible = bootSound ||
+                (!sv.disabled &&
+                    (!sv.oneshot ||
+                        bin.substringBeforeLast('/').endsWith("/bin/hw")))
+        
+            val notSkipped = bootSound ||
+                (sv.name !in SKIP &&
+                    base !in SKIP_BIN &&
+                    (base == "sensorhubservice" ||
+                        SKIP_BIN.none {
+                            base == it ||
+                                ((it.endsWith("_") || it.length >= 5) &&
+                                    base.startsWith(it))
+                        }))
+        
+            startEligible &&
+                sv.name !in known &&
+                notSkipped &&
+                !base.endsWith(".sh") &&
+                (bin.startsWith("/system/bin/") ||
+                    bin.startsWith("/system/xbin/") ||
+                    bin.startsWith("/vendor/bin/") ||
+                    bin.startsWith("/apex/")) &&
                 File(root, bin.removePrefix("/")).isFile
-        }.map { sv -> GuestService(sv.name, sv.argv, sv.sockets.toMap(), delayMs = 200, optional = true,
-            // the camera service connects to itself (the API 1 parameters of each camera) and trusts that call only
-            // from its own uid or the media one, never from root
-            // (the program exists from 7.0 on, and 7.x checks the same way)
-            uid = if (sv.name == "cameraserver") 1047 else 0, gid = if (sv.name == "cameraserver") 1047 else 0,
-            // 8.0+: a service without a class is in none of the classes init starts (the WebView zygotes, which
-            // system_server starts itself for the ABI of the WebView package)
-            onDemand = api >= 26 && sv.cls == "default") }
+        }.map { sv ->GuestService(
+            name = sv.name,
+            argv = sv.argv,
+            sockets = sv.sockets.toMap(),
+            delayMs = 200,
+            optional = true,
+            uid = if (bootSound) AID[sv.user] ?: 0
+                else if (sv.name == "cameraserver") 1047 else 0,
+            gid = if (bootSound) AID[sv.group] ?: 0
+                else if (sv.name == "cameraserver") 1047 else 0,
+            onDemand = !bootSound && api >= 26 && sv.cls == "default"
+        ) }
         // Treble (8.0+): the HALs are programs of their own (/vendor/bin/hw), and surfaceflinger, keystore and
         // system_server wait for the ones the vendor manifest lists: they go up right after the service managers
         val (hals, rest) = extras.partition { it.argv.first().substringBeforeLast('/').endsWith("/bin/hw") }
@@ -201,6 +223,22 @@ object InitPlan {
         "sensors.qcom", "location-mq", "xtwifi", "quipc", "usf_", "adsprpcd", "subsystem_ramdump",
     )
 
+    private val BOOT_SOUND_SERVICE_NAMES = setOf(
+        "powersnd",
+        "playsound",
+        "samsungpowersoundplay",
+        "powersoundplay",
+        "powersound",
+        "bootsound",
+        "boot_sound",
+        "playbootsound",
+    )
+
+    private fun isBootSoundService(s: RcService): Boolean =
+        (sequenceOf(s.name) +
+            s.argv.asSequence().map { it.substringAfterLast('/') })
+            .any { it.lowercase() in BOOT_SOUND_SERVICE_NAMES }
+    
     private fun toService(s: RcService, r: Rule): GuestService {
         val name = when (r.name) { "media" -> "mediaserver"; "drm" -> "drmserver"; else -> r.name }
         return GuestService(
