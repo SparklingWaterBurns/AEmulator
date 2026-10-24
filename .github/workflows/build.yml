@@ -24,6 +24,14 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate localization resources
+        run: python app/l10n/gen.py
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
