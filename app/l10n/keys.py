@@ -11,7 +11,7 @@ KEYS = [
     "vs_screen", "vs_fixed_2x", "vs_screen_hint", "vs_perf",
     "vs_gpu", "vs_gpu_sub", "vs_hwui", "vs_hwui_sub", "vs_jit", "vs_jit_sub",
     "vs_legacy", "vs_legacy_sub", "vs_lowram", "vs_lowram_sub", "vs_proxy", "vs_proxy_sub",
-    "vs_controls", "vs_nav", "vs_nav_sub", "vs_awake", "vs_awake_sub", "vs_single", "vs_single_sub",
+    "vs_controls", "vs_nav", "vs_nav_sub", "vs_awake", "vs_awake_sub", "vs_single", "vs_single_sub", "vs_boot_sound", "vs_boot_sound_sub",
     "vm_booting_short", "menu", "log", "vol_up", "vol_down", "power", "shutdown",
     "back", "home", "recents", "failed_start", "close", "retry",
     "st_preparing", "st_booting", "st_stopping", "first_boot_hint", "host", "guest_log",
