@@ -1,0 +1,81 @@
+name: Build APKs
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build signed APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: 'platform-tools'
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_COMMANDLINE_TOOLS_VERSION: "11076708" # Use a stable Linux binary identifier
+          shell: bash
+
+      - name: Configure stable default Android debug signing key
+        run: |
+          cat > keystore.properties <<'EOF'
+          storeFile=.github/debug.keystore
+          storePassword=android
+          keyAlias=androiddebugkey
+          keyPassword=android
+          EOF
+          chmod +x ./gradlew
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APKs
+        run: |
+          ./gradlew --no-daemon --stacktrace \
+            :app:assembleStandardDebug \
+            :app:assembleCloneDebug \
+            :app:assembleV0003Debug
+
+      - name: Collect APKs
+        run: |
+          mkdir -p dist
+          find app/build/outputs/apk -type f -name '*.apk' -print -exec cp {} dist/ \;
+          test -n "$(find dist -maxdepth 1 -type f -name '*.apk' -print -quit)"
+
+      # - name: Verify APK signatures
+      #  run: |
+      #    for apk in dist/*.apk; do
+      #      echo "Checking $apk"
+      #      apksigner verify --verbose "$apk"
+      #    done
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: testBuild-${{ github.sha }}
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 14
