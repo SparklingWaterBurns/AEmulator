@@ -8,6 +8,8 @@ data class VmSettings(
     val width: Int = 540,
     val height: Int = 960,
     val density: Int = 240,
+    /** Boot sound */
+    val bootSound: Boolean = false,
     /** аппаратная отрисовка через GPU телефона (иначе программный растеризатор прошивки) */
     val gpu: Boolean = true,
     /** hwui в гостевых приложениях (4.x) */
@@ -50,6 +52,7 @@ data class VmSettings(
         .put("width", width).put("height", height).put("density", density)
         .put("gpu", gpu).put("hwui", hwui).put("jit", jit).put("fullDexopt", fullDexopt).put("fbHz", fbHz)
         .put("touchHz", touchHz).put("netProxy", netProxy).put("lowRam", lowRam)
+        .put("bootSound", bootSound)
         .put("showFrame", showFrame).put("showNavBar", showNavBar).put("navKeys", navKeys).put("navSize", navSize)
         .put("keepScreenOn", keepScreenOn).put("showLed", showLed).put("mtMode", mtMode).put("legacyEngine", legacyEngine)
         .put("ramMb", ramMb).put("radio", radio).put("native32", native32).put("imei", imei).put("qemuArgs", qemuArgs)
@@ -73,6 +76,7 @@ data class VmSettings(
             if (o == null) return VmSettings()
             val d = VmSettings()
             return VmSettings(
+                bootSound = o.optBoolean("bootSound", d.bootSound),
                 width = o.optInt("width", d.width),
                 height = o.optInt("height", d.height),
                 density = o.optInt("density", d.density),
