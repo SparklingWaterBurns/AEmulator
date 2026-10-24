@@ -62,7 +62,7 @@ class GuestVm(val ctx: Context, val img: GuestImage) {
             listOf("system/etc/init", "vendor/etc/init").flatMap { d -> File(root, d).listFiles()?.filter { it.name.endsWith(".rc") }?.sortedBy { it.name } ?: emptyList() } +
             // 11+: a module's services are declared inside the module (the software codec service)
             (File(root, "apex").listFiles()?.sortedBy { it.name }?.flatMap { m -> File(m, "etc").listFiles()?.filter { it.isFile && it.name.endsWith(".rc") }?.sortedBy { it.name } ?: emptyList() } ?: emptyList())
-        InitPlan.plan(InitPlan.parse(rcFiles, props), img.api, root, enableBootSound = settings.bootSound), img.api, root).takeIf { p -> p.any { it.name == "zygote" } }
+        InitPlan.plan(InitPlan.parse(rcFiles, props), img.api, root, enableBootSound = settings.bootSound).takeIf { p -> p.any { it.name == "zygote" } }
     }.getOrNull() ?: img.services.ifEmpty { InitPlan.fallback(img, paths.root) }
     private var zygoteRestarts = 0
         private set
