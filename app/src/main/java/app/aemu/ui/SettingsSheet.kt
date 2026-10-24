@@ -134,6 +134,9 @@ fun SettingsSheet(img: GuestImage, onDismiss: () -> Unit, onSave: (VmSettings) -
 
             Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.vs_advanced), style = MaterialTheme.typography.titleMedium)
+
+            Toggle(stringResource(R.string.vs_boot_sound), stringResource(R.string.vs_boot_sound_sub), s.bootSound) { s = s.copy(bootSound = it) }
+            
             OutlinedTextField(value = s.qemuArgs, onValueChange = { s = s.copy(qemuArgs = it) },
                 label = { Text(stringResource(R.string.vs_qemu_args)) }, supportingText = { Text(stringResource(R.string.vs_qemu_args_sub)) },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
