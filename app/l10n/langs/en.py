@@ -52,6 +52,8 @@ S = {
     "vs_awake_sub": "While the system is open.",
     "vs_single": "Single touch",
     "vs_single_sub": "For firmware that doesn’t understand multitouch.",
+    "vs_boot_sound": "Enable boot sound",
+    "vs_boot_sound_sub": "Play the firmware's boot sound when starting Android.",
     "vm_booting_short": "Booting · %1$d s",
     "menu": "Menu",
     "log": "Log",
