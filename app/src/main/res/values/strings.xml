@@ -58,6 +58,8 @@
     <string name="vs_awake_sub">While the system is open.</string>
     <string name="vs_single">Single touch</string>
     <string name="vs_single_sub">For firmware that doesn’t understand multitouch.</string>
+    <string name="vs_boot_sound">Enable boot sound</string>
+    <string name="vs_boot_sound_sub">Play the firmware's boot sound when starting Android.</string>
     <string name="vm_booting_short">Booting · %1$d s</string>
     <string name="menu">Menu</string>
     <string name="log">Log</string>
